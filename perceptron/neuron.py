@@ -55,8 +55,38 @@ def log_loss(A, y):
 
 
 def gradient(A, X, y):
+    """
+    Computes gradient descent of cost function versus W & b
+    Inputs:
+    A - Numpy array - activation vector of Predictions (n_samples, 1)
+    X - Numpy array of (n_samples, n_features)
+    y - Numpy array of real y values (n_samples, 1)
+
+    Outputs:
+    dw - gradient of W weights (n_samples, 1)
+    db - gradient of bias B (scalar)
+    """
     m  = len(y)
     dW = (1/m) * np.dot(X.T, (A - y))
-    db = (1/M) * np.sum((A - y))
+    db = (1/m) * np.sum((A - y))
 
-    return dw, db
+    return dW, db
+
+def update_gradient(dW, db, W, b, learning_rate):
+    """
+    Update W and b parameters using gradient descent step.
+
+    Inputs  :
+    dW - gradient descent of weights (n_features, 1)
+    db - gradient descent of bias (scalar)
+    W  - current weights (n_features, 1)
+    b  - current bias (scalar)
+    learning_rate - scalar of selected rate of learning
+
+    Outputs :
+    Updated W & b 
+    """
+    W = W - learning_rate * dW
+    b = b - learning_rate * db
+
+    return W, b
