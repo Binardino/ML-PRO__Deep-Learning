@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def init_neuron(X):
     """
@@ -90,3 +91,30 @@ def update_gradient(dW, db, W, b, learning_rate):
     b = b - learning_rate * db
 
     return W, b
+
+def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
+    W, b = init_neuron(X)
+
+    Loss_history = []
+
+    for i in range(n_iter):
+        A = model(X, W, b)
+
+        current_loss = log_loss(A, y)
+        Loss_history.append(current_loss)
+
+        dW, db = gradient(A, X, y)
+
+        W, b = update_gradient(dW, db, W, b, learning_rate)
+
+        if i % 10 == 0:
+            print(f'at iteration {i} loss cost is of {current_loss}')
+
+    plt.figure(figsize=(8,6))
+    plt.plot(Loss_history)
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss (Log Loss)')
+    plt.title('Learning Curve')
+    plt.show()
+
+    return W, b, Loss_history
