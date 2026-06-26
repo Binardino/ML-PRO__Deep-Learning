@@ -36,18 +36,27 @@ def model(X, W, b):
 
 def log_loss(A, y):
     """
-    Compute loss function (Log Loss)
+    Compute the binary cross-entropy cost - i.e. loss function (Log Loss)
+
     Inputs :
-    A - Numpy array of Predictions (n_samples, 1)
+    A - Numpy array - activation vector of Predictions (n_samples, 1)
     y - Numpy array of real y values (n_samples, 1)
 
     Output:
     Loss results - scalar value of cost function
     """
     m       = len(y)
-    epsilon = 1e-15
+    epsilon = 1e-15  # prevents log(0) = -inf when A is exactly 0 or 1
 
-    loss    = (1/m) * np.sum(-y * np.log(A + epsilon) 
-                             - (1 - y) * np.log(1 - A + epsilon))
+    loss    = (1/m) * np.sum(-y * np.log(A + epsilon)           # cost for positive class (y=1)
+                          - (1 - y) * np.log(1 - A + epsilon))  # cost for negative class (y=0)
 
     return loss
+
+
+def gradient(A, X, y):
+    m  = len(y)
+    dW = (1/m) * np.dot(X.T, (A - y))
+    db = (1/M) * np.sum((A - y))
+
+    return dw, db
