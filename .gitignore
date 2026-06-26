@@ -8,3 +8,6 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Course materials
+ML_ANN_lekcje.pdf
