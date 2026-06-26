@@ -1,9 +1,9 @@
-import matplotlib.pyplot as plt
-from sklearn.datasets import make_blobs
-
 
 def generate_dataset(n_samples=100, random_state=0):
-    X, y = make_blobs(n_samples=n_samples, n_features=2, centers=2, random_state=random_state)
+    X, y = make_blobs(n_samples=n_samples, 
+                      n_features=2, 
+                      centers=2, 
+                      random_state=random_state)
     y = y.reshape((y.shape[0], 1))
     return X, y
 
