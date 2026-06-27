@@ -60,7 +60,7 @@ def gradient(A, X, y):
     Computes gradient descent of cost function versus W & b
     Inputs:
     A - Numpy array - activation vector of Predictions (n_samples, 1)
-    X - Numpy array of (n_samples, n_features)
+    X - Numpy matrix of input values (n_samples, n_features)
     y - Numpy array of real y values (n_samples, 1)
 
     Outputs:
@@ -93,15 +93,26 @@ def update_gradient(dW, db, W, b, learning_rate):
     return W, b
 
 def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
+    """
+    Trains a simple neuron artificial for a binary classification.
+    Inputs :
+    X - Numpy array of input values (n_samples, n_features)
+    y - Numpy array of real y prediction value (n_samples, 1)
+    learning_rate : learning rate - by defaut 0.1
+    n_iter        : amount of iterations - by default 100
+
+    Outputs : 
+
+    """
     W, b = init_neuron(X)
 
-    Loss_history = []
+    loss_history = []
 
     for i in range(n_iter):
         A = model(X, W, b)
 
         current_loss = log_loss(A, y)
-        Loss_history.append(current_loss)
+        loss_history.append(current_loss)
 
         dW, db = gradient(A, X, y)
 
@@ -111,10 +122,10 @@ def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
             print(f'at iteration {i} loss cost is of {current_loss}')
 
     plt.figure(figsize=(8,6))
-    plt.plot(Loss_history)
+    plt.plot(loss_history)
     plt.xlabel('Iterations')
     plt.ylabel('Loss (Log Loss)')
     plt.title('Learning Curve')
     plt.show()
 
-    return W, b, Loss_history
+    return W, b, loss_history
