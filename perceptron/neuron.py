@@ -141,3 +141,20 @@ def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
 
     return W, b, loss_history
 
+def predict(X, W, b):
+    """
+    Predict class 0 & 1 for input data X
+    Inputs : 
+    X - Numpy matrix of input value (n_samples, n_features)
+    W - Learnt weights (n_features, 1)
+    b - Learnt bias (scalar)
+
+    Output :
+    Numpy Array of Predictions as Booleans True & False classifying each entry
+
+    """
+    A = model(X, W, b)
+
+    # returns Numpy vectorised comparison
+    # returns array [True, False] for each value
+    return A >= 0.5
