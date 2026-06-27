@@ -94,33 +94,44 @@ def update_gradient(dW, db, W, b, learning_rate):
 
 def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
     """
-    Trains a simple neuron artificial for a binary classification.
+    Trains a simple artificial neuron for binary classification.
     Inputs :
     X - Numpy array of input values (n_samples, n_features)
     y - Numpy array of real y prediction value (n_samples, 1)
-    learning_rate : learning rate - by defaut 0.1
-    n_iter        : amount of iterations - by default 100
+    learning_rate : learning rate for the gradient descent - by defaut 0.1
+    n_iter        : amount of iterations for the gradient descent loop - by default 100
 
     Outputs : 
+    W : new weight learnt by the model (n_features, 1)
+    b : new bias learnt by the model (scalar)
+    loss_history : list with the history of loss value for each iteration
 
     """
+
+    #initialising the weight & bias
     W, b = init_neuron(X)
 
     loss_history = []
 
     for i in range(n_iter):
+        #forward propagation to compute A
         A = model(X, W, b)
 
+        # compute loss and add to loss history
         current_loss = log_loss(A, y)
         loss_history.append(current_loss)
 
+        # compute gradient DW & db
         dW, db = gradient(A, X, y)
 
+        # update W & b with new gradient values
         W, b = update_gradient(dW, db, W, b, learning_rate)
 
+        # display evolution of loss cost each 10 loop iteration
         if i % 10 == 0:
             print(f'at iteration {i} loss cost is of {current_loss}')
 
+    # display the learning curve
     plt.figure(figsize=(8,6))
     plt.plot(loss_history)
     plt.xlabel('Iterations')
@@ -129,3 +140,4 @@ def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
     plt.show()
 
     return W, b, loss_history
+
