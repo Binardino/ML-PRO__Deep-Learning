@@ -64,7 +64,7 @@ def gradient(A, X, y):
     y - Numpy array of real y values (n_samples, 1)
 
     Outputs:
-    dw - gradient of W weights (n_samples, 1)
+    dW - gradient of W weights (n_features, 1)
     db - gradient of bias B (scalar)
     """
     m  = len(y)
@@ -115,14 +115,14 @@ def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
 
     for i in range(n_iter):
         #forward propagation to compute A
-        A = model(X, W, b)
+        A = model(X, W, b) #Forward : Z → A (probabilities)
 
         # compute loss and add to loss history
         current_loss = log_loss(A, y)
         loss_history.append(current_loss)
 
         # compute gradient DW & db
-        dW, db = gradient(A, X, y)
+        dW, db = gradient(A, X, y) # Gradient : descent direction
 
         # update W & b with new gradient values
         W, b = update_gradient(dW, db, W, b, learning_rate)
@@ -155,6 +155,4 @@ def predict(X, W, b):
     """
     A = model(X, W, b)
 
-    # returns Numpy vectorised comparison
-    # returns array [True, False] for each value
-    return A >= 0.5
+    return A >= 0.5  # threshold at 0.5: True = class 1, False = class 0

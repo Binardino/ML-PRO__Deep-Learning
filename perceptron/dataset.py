@@ -3,15 +3,35 @@ from sklearn.datasets import make_blobs
 import numpy as np
 
 def generate_dataset(n_samples=100, random_state=0):
+    """
+    Generates a synthetic binary classification dataset with 2 features.
+
+    Inputs:
+    n_samples   - number of samples to generate (default 100)
+    random_state - random seed for reproducibility (default 0)
+
+    Returns:
+    X - Numpy matrix of input values (n_samples, 2)
+    y - Numpy column vector of labels 0 or 1 (n_samples, 1)
+    """
     X, y = make_blobs(n_samples=n_samples,
                     n_features=2,
                     centers=2,
                     random_state=random_state)
+    # make_blobs returns y as 1D (n_samples,) — reshape to column vector (n_samples, 1)
+    # required for matrix operations in model() and log_loss()
     y = y.reshape((y.shape[0], 1))
     return X, y
 
 
 def plot_dataset(X, y):
+    """
+    Plots raw dataset scatter without decision boundary.
+
+    Inputs:
+    X - Numpy matrix of input values (n_samples, 2)
+    y - Numpy array of true labels (n_samples, 1)
+    """
     plt.figure(figsize=(8, 6))
     plt.scatter(X[:, 0], X[:, 1], c=y, cmap='summer')
     plt.xlabel('x1 (Width)')
