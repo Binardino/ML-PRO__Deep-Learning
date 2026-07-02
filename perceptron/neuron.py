@@ -156,3 +156,31 @@ def predict(X, W, b):
     A = model(X, W, b)
 
     return A >= 0.5  # threshold at 0.5: True = class 1, False = class 0
+
+def flatten_data(X_train, X_test):
+    """
+    Flatten multi-dimensional input data into 2D matrices (m, n_features).
+    Converts images or any higher-dimensional data into a format compatible
+    with the neuron, which expects (n_samples, n_features).
+
+    The -1 in reshape tells NumPy to automatically compute the second
+    dimension by dividing the total number of elements by m.
+    Example: (1000, 64, 64) → total = 4,096,000 → 4,096,000 / 1000 = 4096
+             Result: (1000, 4096)
+
+    Inputs:
+        X_train -- numpy array of training data, any shape (m_train, d1, d2, ...)
+        X_test  -- numpy array of test data, any shape (m_test, d1, d2, ...)
+
+    Outputs:
+        X_train_reshape -- flattened training data (m_train, n_features)
+        X_test_reshape  -- flattened test data (m_test, n_features)
+    """
+    m_train, m_test = X_train.shape[0], X_test.shape[0]
+
+    X_train_reshape, X_test_reshape = X_train.reshape(m_train, -1), X_test.reshape(m_test, -1)
+
+    print(X_train_reshape.shape)
+    print(X_test_reshape.shape)
+
+    return X_train_reshape, X_test_reshape
