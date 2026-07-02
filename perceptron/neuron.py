@@ -184,3 +184,16 @@ def flatten_data(X_train, X_test):
     print(X_test_reshape.shape)
 
     return X_train_reshape, X_test_reshape
+
+def normalise_data(X_train, X_test):
+    """
+    Apply MinMax normalization using the min and max from the training set.
+    Formula: (X - min) / (max - min)
+    """
+    X_train_norm = (X_train - X_train.min()) / (X_train.max() - X_train.min()) 
+    X_test_norm  = (X_test  - X_train.min()) / (X_train.max() - X_train.min()) 
+
+    print(f"X_train bounds : min={X_train_norm.min():.2f}, max={X_train_norm.max():.2f}")
+    print(f"X_test bounds  : min= {X_test_norm.min():.2f}, max={X_test_norm.max():.2f}")
+
+    return X_train_norm, X_test_norm
