@@ -1,5 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
+from sklearn.metrics import accuracy_score
 
 def init_neuron(X):
     """
@@ -92,54 +94,76 @@ def update_gradient(dW, db, W, b, learning_rate):
 
     return W, b
 
-def artificial_neuron(X, y, learning_rate=0.1, n_iter=100):
+def artificial_neuron(X_train, y_train, X_test, y_test, learning_rate=0.01, n_iter=10000):
     """
     Trains a simple artificial neuron for binary classification.
+
     Inputs :
-    X - Numpy array of input values (n_samples, n_features)
-    y - Numpy array of real y prediction value (n_samples, 1)
-    learning_rate : learning rate for the gradient descent - by defaut 0.1
-    n_iter        : amount of iterations for the gradient descent loop - by default 100
+    X_train       - training feature matrix (n_samples, n_features)
+    y_train       - training labels (n_samples, 1)
+    X_test        - test feature matrix (n_samples, n_features)
+    y_test        - test labels (n_samples, 1)
+    learning_rate - step size for gradient descent (default 0.01)
+    n_iter        - number of training iterations (default 10000)
 
-    Outputs : 
-    W : new weight learnt by the model (n_features, 1)
-    b : new bias learnt by the model (scalar)
-    loss_history : list with the history of loss value for each iteration
+    Outputs :
+    W                  - learned weights (n_features, 1)
+    b                  - learned bias (scalar)
+    loss_train_history - list of training loss sampled every 10 iterations
 
+    Plots: loss curve and accuracy curve (train vs test) at end of training.
     """
 
     #initialising the weight & bias
-    W, b = init_neuron(X)
+    W, b = init_neuron(X_train)
 
-    loss_history = []
+    loss_train_history = []
+    acc_train          = []
+    loss_test_history  = []
+    acc_test           = []
 
-    for i in range(n_iter):
+    for i in tqdm(range(n_iter)):
         #forward propagation to compute A
-        A = model(X, W, b) #Forward : Z → A (probabilities)
+        A = model(X_train, W, b) #Forward : Z → A (probabilities)
 
-        # compute loss and add to loss history
-        current_loss = log_loss(A, y)
-        loss_history.append(current_loss)
+        if i % 10 == 0:
+            # compute Train loss & accuracy and add to loss history
+            current_loss_train = log_loss(A, y_train)
+            loss_train_history.append(current_loss_train)
+            y_pred = predict(X_train, W, b)
+            acc_train.append(accuracy_score(y_train, y_pred))
+            print(f'at iteration {i} loss cost is of {current_loss_train}')
+
+            # compute Test loss & accuracy and add to loss history
+            A_test = model(X_test, W, b)
+            current_loss_test = log_loss(A_test, y_test)
+            loss_test_history.append(current_loss_test)
+            y_pred = predict(X_test, W, b)
+            acc_test.append(accuracy_score(y_test, y_pred))
 
         # compute gradient DW & db
-        dW, db = gradient(A, X, y) # Gradient : descent direction
+        dW, db = gradient(A, X_train, y_train) # Gradient : descent direction
 
         # update W & b with new gradient values
         W, b = update_gradient(dW, db, W, b, learning_rate)
 
-        # display evolution of loss cost each 10 loop iteration
-        if i % 10 == 0:
-            print(f'at iteration {i} loss cost is of {current_loss}')
-
     # display the learning curve
-    plt.figure(figsize=(8,6))
-    plt.plot(loss_history)
+    plt.figure(figsize=(12,8))
+    plt.subplot(1,2,1)
+    plt.plot(loss_train_history, label='Train Loss')
+    plt.plot(loss_test_history, label='Test Loss')
+    plt.legend()
+    plt.title('Log Loss History Train VS. Test')
     plt.xlabel('Iterations')
     plt.ylabel('Loss (Log Loss)')
-    plt.title('Learning Curve')
+    plt.subplot(1,2,2)
+    plt.plot(acc_train, label='Train Accuracy')
+    plt.plot(acc_test, label='Test Accuracy')
+    plt.legend()
+    plt.title('Accuracy Train VS. Test')
     plt.show()
 
-    return W, b, loss_history
+    return W, b, loss_train_history
 
 def predict(X, W, b):
     """
