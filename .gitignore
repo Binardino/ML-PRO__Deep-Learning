@@ -9,5 +9,8 @@ wheels/
 # Virtual environments
 .venv
 
+#folders
+datasets
+
 # Course materials
 ML_ANN_lekcje.pdf
