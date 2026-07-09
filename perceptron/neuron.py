@@ -13,7 +13,7 @@ def init_neuron(X):
         b -- bias (scalar), randomly initialized
     """
     n_features = X.shape[1]
-    W          = np.random.randn(n_features, 1)  # one weight per feature
+    W          = np.random.randn(n_features, 1) * 0.01  # one weight per feature
     b          = np.random.randn(1)               # single bias
 
     return W, b
