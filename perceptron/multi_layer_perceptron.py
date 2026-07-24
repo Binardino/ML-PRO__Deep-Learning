@@ -29,6 +29,26 @@ def init_neuron(n0, n1, n2):
 
     return parameters
 
+def log_loss(A, y):
+    """
+    Compute the binary cross-entropy cost - log loss function
+    Inputs :
+    A - Np array - activation vectors
+    y - Np array - real y vales
+
+    Outputs:
+    Loss results - scalar value of cost function
+    """
+    m       = y.shape[1]
+    epsilon = 1e-15
+
+    loss = (1 / m) * np.sum(-y * np.log(A + epsilon)
+                            - (1 - y) * np.log(1 - A + epsilon)
+    ) 
+
+    return loss
+
+
 def forward_propagation(X, parameters):
     """
     Compute the activations of both layers - forward propagation.
@@ -123,4 +143,69 @@ def update(parameters, gradients, learning_rate):
     }
 
     return parameters
-        
+
+def predict(X, parameters):
+    """
+    Predict class 0/1 for input data X using the trained 2-layer network.
+
+    Arguments:
+        X          -- input feature matrix (n0, m)
+        parameters -- dict containing trained W1, b1, W2, b2
+
+    Returns:
+        Boolean array (n2, m): True = class 1, False = class 0 (threshold 0.5 on A2)
+    """
+    activations = forward_propagation(X, parameters)
+    A2 = activations['A2']
+    return A2 >= 0.5
+
+def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
+    """
+    Train a 2-layer neural network (1 hidden + 1 output layer) via gradient descent.
+
+    Arguments:
+        X_train       -- training feature matrix (n0, m)
+        y_train       -- training labels (n2, m)
+        n1            -- number of neurons in the hidden layer
+        learning_rate -- step size for gradient descent (default 0.01)
+        n_iter        -- number of training iterations (default 1000)
+
+    Returns:
+        parameters -- trained dict of W1, b1, W2, b2
+        train_loss -- training loss sampled every 10 iterations
+        train_acc  -- training accuracy sampled every 10 iterations
+
+    Plots: loss curve and accuracy curve (train) at end of training.
+    """
+    #init
+    n0 = X_train.shape[0]
+    n2 = y_train.shape[0]
+    parameters = init_neuron(n0, n1, n2)
+
+    train_loss = []
+    train_acc = []
+
+    for i in range(n_iter):
+        activations = forward_propagation(X_train, parameters)
+        gradients   = back_propagation(X_train, y_train, parameters, activations)
+        parameters  = update(parameters, gradients, learning_rate)
+
+        if i %10 == 0:
+            train_loss.append(log_loss(activations['A2'], y_train))
+            y_pred = predict(X_train, parameters)
+            current_accuracy = accuracy_score(y_train.flatten(), y_pred.flatten())
+            train_acc.append(current_accuracy)
+
+    plt.figure(figsize=(14,4))
+
+    plt.subplot(1,2,1)
+    plt.plot(train_loss, label='train_loss')
+    plt.legend()
+
+    plt.subplot(1,2,2)
+    plt.plot(train_acc, label='train_acc')
+    plt.legend()
+
+    plt.show()
+
+    return parameters, train_loss, train_acc
