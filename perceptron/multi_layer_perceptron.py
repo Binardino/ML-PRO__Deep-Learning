@@ -159,6 +159,50 @@ def predict(X, parameters):
     A2 = activations['A2']
     return A2 >= 0.5
 
+def flatten_data(X_train, X_test):
+    """
+    Flatten multi-dimensional input data into 2D matrices (m, n_features).
+
+    Arguments:
+        X_train -- training data, any shape (m_train, d1, d2, ...)
+        X_test  -- test data, any shape (m_test, d1, d2, ...)
+
+    Returns:
+        X_train_reshape -- flattened training data (m_train, n_features)
+        X_test_reshape  -- flattened test data (m_test, n_features)
+
+    Note: output is row-per-example (m, n_features). Transpose to
+    (n_features, m) before passing into neural_network().
+    """
+    m_train, m_test = X_train.shape[0], X_test.shape[0]
+    X_train_reshape, X_test_reshape = X_train.reshape(m_train, -1), X_test.reshape(m_test, -1)
+
+    print('X_train_reshape shapes =', X_train_reshape.shape)
+    print('X_test_reshape shapes  =', X_test_reshape.shape)
+
+    return X_train_reshape, X_test_reshape
+
+def normalise_data(X_train, X_test):
+    """
+    Apply Min-Max normalization using the training set's min/max only,
+    to avoid data leakage from the test set.
+
+    Arguments:
+        X_train -- flattened training data (m_train, n_features)
+        X_test  -- flattened test data (m_test, n_features)
+
+    Returns:
+        X_train_norm -- normalized training data, same shape as X_train
+        X_test_norm  -- normalized test data, same shape as X_test
+    """
+    X_train_norm = (X_train - X_train.min()) / (X_train.max() - X_train.min())
+    X_test_norm  = (X_test  - X_train.min()) / (X_train.max() - X_train.min())
+
+    print(f"X_train bounds : min={X_train_norm.min():.2f}, max={X_train_norm.max():.2f}")
+    print(f"X_test bounds  : min= {X_test_norm.min():.2f}, max={X_test_norm.max():.2f}")
+
+    return X_train_norm, X_test_norm
+
 def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
     """
     Train a 2-layer neural network (1 hidden + 1 output layer) via gradient descent.
