@@ -229,7 +229,7 @@ def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
     train_loss = []
     train_acc = []
 
-    for i in range(n_iter):
+    for i in tqdm(range(n_iter)):
         activations = forward_propagation(X_train, parameters)
         gradients   = back_propagation(X_train, y_train, parameters, activations)
         parameters  = update(parameters, gradients, learning_rate)
