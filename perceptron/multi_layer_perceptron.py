@@ -3,29 +3,21 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from sklearn.metrics import accuracy_score
 
-def init_neuron(n0, n1, n2):
+def init_neuron(dimensions : list):
     """
-    Initialise W and b parameters for a 2-layer network (1 hidden + 1 output layer).
+    Initialise W and b parameters for a network of arbitrary depth.
 
     Arguments:
-        n0 -- number of input features
-        n1 -- number of neurons in the hidden layer
-        n2 -- number of neurons in the output layer
-
+        dimensions -- list of layer sizes [n0, n1, ..., nC] where n0 is the input layer & nC the output layer
     Returns:
-        parameters -- dict containing W1, b1, W2, b2, randomly initialized
+        parameters -- dict containing W1, b1, ..., WC, bC, randomly initialized
     """
-    W1 = np.random.randn(n1, n0)
-    b1 = np.random.randn(n1, 1)
-    W2 = np.random.randn(n2, n1)
-    b2 = np.random.randn(n2, 1)
+    parameters = {}
+    C = len(dimensions) - 1 #amount of computational layers
 
-    parameters = {
-        'W1' : W1,
-        'b1' : b1,
-        'W2' : W2,
-        'b2' : b2
-    }
+    for c in range(1, C + 1):
+        parameters[f'W{c}'] = np.random.randn(dimensions[c], dimensions[c-1]) * 0.01
+        parameters[f'b{c}'] = np.zeros((dimensions[c], 1))
 
     return parameters
 
