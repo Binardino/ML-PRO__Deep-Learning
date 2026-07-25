@@ -67,41 +67,36 @@ def forward_propagation(X, parameters):
 
 def back_propagation(X, y, parameters, activations):
     """
-    Compute gradients of the cost function w.r.t. W1, b1, W2, b2 - backpropagation.
+    Compute gradients of the cost function w.r.t. every layer's W and b - backpropagation.
 
     Arguments:
         X           -- input feature matrix (n0, m)
-        y           -- true labels (n2, m)
-        parameters  -- dict containing W1, b1, W2, b2
-        activations -- dict containing A1, A2 (from forward_propagation)
+        y           -- true labels (nC, m)
+        parameters  -- dict containing W1, b1, ..., WC, bC
+        activations -- dict containing A0 (=X), A1, ..., AC (from forward_propagation)
 
     Returns:
-        gradients -- dict containing dW1, db1, dW2, db2
+        gradients -- dict containing dW1, db1, ..., dWC, dbC
     """
-    A1 = activations['A1']
-    A2 = activations['A2']
-    W2 = parameters['W2']
+    C = len(parameters) // 2
     m = y.shape[1]
 
+    gradients = {}
+
     # Output layer error (identical form to the single-neuron gradient: A - y)
-    dZ2 = A2 - y
-    dW2 = 1 / m * dZ2.dot(A1.T)
-    # keepdims=True preserves shape (n2, 1) instead of collapsing to (n2,),
-    # which would break broadcasting when updating b2
-    db2 = 1 / m * np.sum(dZ2, axis = 1, keepdims=True)
+    dZ = activations[f'A{C}'] - y
+    gradients[f'dW{C}'] = 1 / m * dZ.dot(activations[f'A{C-1}'].T)
+    gradients[f'db{C}'] = 1 / m * np.sum(dZ, axis=1, keepdims=True)
 
-    # Propagate the error back through W2, then apply the local sigmoid
-    # derivative A1 * (1 - A1) to get the hidden layer's error term
-    dZ1 = np.dot(W2.T, dZ2) * A1 * (1 - A1)
-    dW1 = 1 / m * dZ1.dot(X.T)
-    db1 = 1 / m * np.sum(dZ1, axis=1, keepdims=True)
+    # Walk back from layer C-1 down to layer 1, reusing the dZ computed one
+    # layer above (W of layer c+1, not layer c: dZ[c] depends on W[c+1])
+    for c in reversed(range(1, C)):
+        W_next = parameters[f'W{c+1}']
+        A_c    = activations[f'A{c}']
 
-    gradients = {
-        'dW1' : dW1,
-        'db1' : db1,
-        'dW2' : dW2,
-        'db2' : db2
-    }
+        dZ = np.dot(W_next.T, dZ) * A_c * (1 - A_c)
+        gradients[f'dW{c}'] = 1 / m * dZ.dot(activations[f'A{c-1}'].T)
+        gradients[f'db{c}'] = 1 / m * np.sum(dZ, axis=1, keepdims=True)
 
     return gradients
 
