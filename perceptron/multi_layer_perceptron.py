@@ -40,33 +40,28 @@ def log_loss(A, y):
 
     return loss
 
-
 def forward_propagation(X, parameters):
     """
-    Compute the activations of both layers - forward propagation.
+    Compute the activations of every layer - forward propagation.
 
     Arguments:
         X          -- input feature matrix (n0, m)
-        parameters -- dict containing W1, b1, W2, b2
+        parameters -- dict containing W1, b1, ..., WC, bC
 
     Returns:
-        activations -- dict containing A1 (hidden layer output) and A2 (final output)
+        activations -- dict containing A0 (=X), A1, ..., AC (final output)
     """
-    W1, W2 = parameters['W1'], parameters['W2']
-    b1, b2 = parameters['b1'], parameters['b2']
+    C = len(parameters) //2 #each layer contains exactly 2 keys : Wc & bc 
+    activations = {'A0' : X}
 
-    Z1 = W1.dot(X) + b1
-    A1 = 1 / (1 + np.exp(-Z1))
-
-    # A1 (not Z1) feeds the next layer: the sigmoid is what keeps the
-    # 2-layer stack from collapsing into a single linear transformation.
-    Z2 = W2.dot(A1) + b2
-    A2 = 1 / (1 + np.exp(-Z2))
-
-    activations = {
-        'A1' : A1,
-        'A2' : A2
-    }
+    for c in range(1, C+1):
+        W = parameters[f'W{c}']
+        b = parameters[f'b{c}']
+        A_prev = activations[f'A{c-1}']
+        
+        Z = W.dot(A_prev) + b
+        A = 1 / (1 + np.exp(-Z))
+        activations[f'A{c}'] = A
 
     return activations
 
