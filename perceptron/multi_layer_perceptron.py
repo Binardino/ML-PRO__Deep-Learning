@@ -105,26 +105,21 @@ def update(parameters, gradients, learning_rate):
     Update W1, b1, W2, b2 using gradient descent step.
 
     Arguments:
-        parameters    -- dict containing current W1, b1, W2, b2
-        gradients     -- dict containing dW1, db1, dW2, db2
+        parameters    -- dict containing current W1, b1, ..., WC, bC
+        gradients     -- dict containing dW1, db1, ..., dWC, dbC
         learning_rate -- scalar step size
 
     Returns:
-        parameters -- updated dict of W1, b1, W2, b2
+        parameters -- updated dict of W1, b1, ..., WC, bC
     """
-    W1 = parameters['W1'] - learning_rate * gradients['dW1']
-    b1 = parameters['b1'] - learning_rate * gradients['db1']
-    W2 = parameters['W2'] - learning_rate * gradients['dW2']
-    b2 = parameters['b2'] - learning_rate * gradients['db2']
+    C = len(parameters) // 2
+    updated_parameters = {}
 
-    parameters = {
-        'W1' : W1,
-        'b1' : b1,
-        'W2' : W2,
-        'b2' : b2
-    }
+    for c in range(1, C + 1):
+        updated_parameters[f'W{c}'] = parameters[f'W{c}'] - - learning_rate * gradients[f'dW{c}']
+        updated_parameters[f'b{c}'] = parameters[f'b{c}'] - - learning_rate * gradients[f'db{c}']
 
-    return parameters
+    return updated_parameters
 
 def predict(X, parameters):
     """
