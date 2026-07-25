@@ -9,7 +9,7 @@ def main():
         
     X_train_norm, X_test_norm = normalise_data(X_train_reshape, X_test_reshape)
 
-    parameters, train_loss, train_acc = neural_network(X_train_norm.T, y_train.T, n1=32, learning_rate=0.001, n_iter=10000)
+    parameters, train_loss, train_acc = neural_network(X_train_norm.T, y_train.T, hidden_dims=[32], learning_rate=0.001, n_iter=10000)
 
     print("\nFinal parameters:")
     print("W1 shape:", parameters['W1'].shape)

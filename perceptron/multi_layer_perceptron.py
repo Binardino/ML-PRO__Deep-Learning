@@ -102,7 +102,7 @@ def back_propagation(X, y, parameters, activations):
 
 def update(parameters, gradients, learning_rate):
     """
-    Update W1, b1, W2, b2 using gradient descent step.
+    Update every layer's W and b using a gradient descent step.
 
     Arguments:
         parameters    -- dict containing current W1, b1, ..., WC, bC
@@ -116,25 +116,26 @@ def update(parameters, gradients, learning_rate):
     updated_parameters = {}
 
     for c in range(1, C + 1):
-        updated_parameters[f'W{c}'] = parameters[f'W{c}'] - - learning_rate * gradients[f'dW{c}']
-        updated_parameters[f'b{c}'] = parameters[f'b{c}'] - - learning_rate * gradients[f'db{c}']
+        updated_parameters[f'W{c}'] = parameters[f'W{c}'] - learning_rate * gradients[f'dW{c}']
+        updated_parameters[f'b{c}'] = parameters[f'b{c}'] - learning_rate * gradients[f'db{c}']
 
     return updated_parameters
 
 def predict(X, parameters):
     """
-    Predict class 0/1 for input data X using the trained 2-layer network.
+    Predict class 0/1 for input data X using the trained network.
 
     Arguments:
         X          -- input feature matrix (n0, m)
-        parameters -- dict containing trained W1, b1, W2, b2
+        parameters -- dict containing trained W1, b1, ..., WC, bC
 
     Returns:
-        Boolean array (n2, m): True = class 1, False = class 0 (threshold 0.5 on A2)
+        Boolean array (nC, m): True = class 1, False = class 0 (threshold 0.5 on the output layer)
     """
+    C = len(parameters) // 2
     activations = forward_propagation(X, parameters)
-    A2 = activations['A2']
-    return A2 >= 0.5
+    A_final = activations[f'A{C}']
+    return A_final >= 0.5
 
 def flatten_data(X_train, X_test):
     """
@@ -180,19 +181,20 @@ def normalise_data(X_train, X_test):
 
     return X_train_norm, X_test_norm
 
-def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
+def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=1000):
     """
-    Train a 2-layer neural network (1 hidden + 1 output layer) via gradient descent.
+    Train a neural network of arbitrary depth via gradient descent.
 
     Arguments:
         X_train       -- training feature matrix (n0, m)
-        y_train       -- training labels (n2, m)
-        n1            -- number of neurons in the hidden layer
+        y_train       -- training labels (nC, m)
+        hidden_dims   -- list of hidden layer sizes, e.g. [32, 16, 8] for 3 hidden layers
+                          (n0 and nC are inferred from X_train/y_train, no need to include them)
         learning_rate -- step size for gradient descent (default 0.01)
         n_iter        -- number of training iterations (default 1000)
 
     Returns:
-        parameters -- trained dict of W1, b1, W2, b2
+        parameters -- trained dict of W1, b1, ..., WC, bC
         train_loss -- training loss sampled every 10 iterations
         train_acc  -- training accuracy sampled every 10 iterations
 
@@ -200,8 +202,10 @@ def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
     """
     #init
     n0 = X_train.shape[0]
-    n2 = y_train.shape[0]
-    parameters = init_neuron(n0, n1, n2)
+    nC = y_train.shape[0]
+    dimensions = [n0] + list(hidden_dims) + [nC]
+    C = len(dimensions) - 1
+    parameters = init_neuron(dimensions)
 
     train_loss = []
     train_acc = []
@@ -212,7 +216,7 @@ def neural_network(X_train, y_train, n1, learning_rate=0.01, n_iter=1000):
         parameters  = update(parameters, gradients, learning_rate)
 
         if i %10 == 0:
-            train_loss.append(log_loss(activations['A2'], y_train))
+            train_loss.append(log_loss(activations[f'A{C}'], y_train))
             y_pred = predict(X_train, parameters)
             current_accuracy = accuracy_score(y_train.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
