@@ -65,12 +65,11 @@ def forward_propagation(X, parameters):
 
     return activations
 
-def back_propagation(X, y, parameters, activations):
+def back_propagation(y, parameters, activations):
     """
     Compute gradients of the cost function w.r.t. every layer's W and b - backpropagation.
 
     Arguments:
-        X           -- input feature matrix (n0, m)
         y           -- true labels (nC, m)
         parameters  -- dict containing W1, b1, ..., WC, bC
         activations -- dict containing A0 (=X), A1, ..., AC (from forward_propagation)
@@ -212,7 +211,7 @@ def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=100
 
     for i in tqdm(range(n_iter)):
         activations = forward_propagation(X_train, parameters)
-        gradients   = back_propagation(X_train, y_train, parameters, activations)
+        gradients   = back_propagation(y_train, parameters, activations)
         parameters  = update(parameters, gradients, learning_rate)
 
         if i %10 == 0:
