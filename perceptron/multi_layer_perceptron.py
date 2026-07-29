@@ -180,13 +180,15 @@ def normalise_data(X_train, X_test):
 
     return X_train_norm, X_test_norm
 
-def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=1000):
+def neural_network(X_train, y_train, X_test, y_test, hidden_dims, learning_rate=0.01, n_iter=1000):
     """
     Train a neural network of arbitrary depth via gradient descent.
 
     Arguments:
         X_train       -- training feature matrix (n0, m)
         y_train       -- training labels (nC, m)
+        X_test        -- test feature matrix (n0, m_test)
+        y_test        -- test labels (nC, m_test)
         hidden_dims   -- list of hidden layer sizes, e.g. [32, 16, 8] for 3 hidden layers
                           (n0 and nC are inferred from X_train/y_train, no need to include them)
         learning_rate -- step size for gradient descent (default 0.01)
@@ -196,8 +198,10 @@ def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=100
         parameters -- trained dict of W1, b1, ..., WC, bC
         train_loss -- training loss sampled every 10 iterations
         train_acc  -- training accuracy sampled every 10 iterations
+        test_loss  -- test loss sampled every 10 iterations
+        test_acc   -- test accuracy sampled every 10 iterations
 
-    Plots: loss curve and accuracy curve (train) at end of training.
+    Plots: loss curve and accuracy curve (train vs test) at end of training.
     """
     #init
     n0 = X_train.shape[0]
@@ -207,12 +211,12 @@ def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=100
     parameters = init_neuron(dimensions)
 
     train_loss = []
-    train_acc = []
+    train_acc  = []
+    test_loss  = []
+    test_acc   = []
 
     for i in tqdm(range(n_iter)):
         activations = forward_propagation(X_train, parameters)
-        gradients   = back_propagation(y_train, parameters, activations)
-        parameters  = update(parameters, gradients, learning_rate)
 
         if i %10 == 0:
             train_loss.append(log_loss(activations[f'A{C}'], y_train))
@@ -220,16 +224,34 @@ def neural_network(X_train, y_train, hidden_dims, learning_rate=0.01, n_iter=100
             current_accuracy = accuracy_score(y_train.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
 
+            #test graph
+            A_test = forward_propagation(X_test, parameters)
+            test_loss.append(log_loss(A_test[f'A{C}'], y_test))
+            y_test_pred = predict(X_test, parameters)
+            current_test_acc = accuracy_score(y_test.flatten(), y_test_pred.flatten())
+            test_acc.append(current_test_acc)
+
+        gradients   = back_propagation(y_train, parameters, activations)
+        parameters  = update(parameters, gradients, learning_rate)
+
+
     plt.figure(figsize=(14,4))
 
     plt.subplot(1,2,1)
     plt.plot(train_loss, label='train_loss')
+    plt.plot(test_loss, label='test_loss')
     plt.legend()
+    plt.title('Log Loss History Train VS. Test')
+    plt.xlabel('Iterations')
+    plt.ylabel('Loss (Log Loss)')
 
     plt.subplot(1,2,2)
     plt.plot(train_acc, label='train_acc')
+    plt.plot(test_acc, label='test_acc')
     plt.legend()
-
+    plt.title('Accuracy History Train VS. Test')
+    plt.xlabel('Iterations')
+    plt.ylabel('Accuracy Train VS. Test')
     plt.show()
 
-    return parameters, train_loss, train_acc
+    return parameters, train_loss, train_acc, test_loss, test_acc
