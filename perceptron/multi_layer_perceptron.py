@@ -16,29 +16,37 @@ def init_neuron(dimensions : list):
     C = len(dimensions) - 1 #amount of computational layers
 
     for c in range(1, C + 1):
-        parameters[f'W{c}'] = np.random.randn(dimensions[c], dimensions[c-1]) * 0.01
+        parameters[f'W{c}'] = np.random.randn(dimensions[c], dimensions[c-1]) * np.sqrt(1 / dimensions[c-1]) # add init Xavier / Glorot to add fan-in and scale constant per layers depending on dimension size
         parameters[f'b{c}'] = np.zeros((dimensions[c], 1))
 
     return parameters
 
-def log_loss(A, y):
+def log_loss(A, y, parameters, lambda_reg):
     """
-    Compute the binary cross-entropy cost - log loss function
+    Compute the binary cross-entropy cost - log loss function, plus an L2
+    regularization penalty on the weights (excludes biases).
     Inputs :
-    A - Np array - activation vectors
-    y - Np array - real y vales
+    A          - Np array - activation vectors
+    y          - Np array - real y vales
+    parameters - dict containing W1, b1, ..., WC, bC
+    lambda_reg - L2 regularization strength (0 disables it)
 
     Outputs:
     Loss results - scalar value of cost function
     """
     m       = y.shape[1]
     epsilon = 1e-15
+    C       = len(parameters) // 2
 
     loss = (1 / m) * np.sum(-y * np.log(A + epsilon)
                             - (1 - y) * np.log(1 - A + epsilon)
-    ) 
+    )
 
-    return loss
+    l2_penalty = (lambda_reg / (2 * m)) * sum(
+        np.sum(parameters[f'W{c}'] ** 2) for c in range(1, C + 1)
+    )
+
+    return loss + l2_penalty
 
 def forward_propagation(X, parameters):
     """
@@ -65,7 +73,7 @@ def forward_propagation(X, parameters):
 
     return activations
 
-def back_propagation(y, parameters, activations):
+def back_propagation(y, parameters, activations, lambda_reg):
     """
     Compute gradients of the cost function w.r.t. every layer's W and b - backpropagation.
 
@@ -73,6 +81,7 @@ def back_propagation(y, parameters, activations):
         y           -- true labels (nC, m)
         parameters  -- dict containing W1, b1, ..., WC, bC
         activations -- dict containing A0 (=X), A1, ..., AC (from forward_propagation)
+        lambda_reg  -- L2 regularization strength (0 disables it)
 
     Returns:
         gradients -- dict containing dW1, db1, ..., dWC, dbC
@@ -83,8 +92,10 @@ def back_propagation(y, parameters, activations):
     gradients = {}
 
     # Output layer error (identical form to the single-neuron gradient: A - y)
+    # L2 term only affects dW (not db, biases are never regularized) and is
+    # added directly to the loss-derived gradient, independently of dZ.
     dZ = activations[f'A{C}'] - y
-    gradients[f'dW{C}'] = 1 / m * dZ.dot(activations[f'A{C-1}'].T)
+    gradients[f'dW{C}'] = 1 / m * dZ.dot(activations[f'A{C-1}'].T) + (lambda_reg / m) * parameters[f'W{C}']
     gradients[f'db{C}'] = 1 / m * np.sum(dZ, axis=1, keepdims=True)
 
     # Walk back from layer C-1 down to layer 1, reusing the dZ computed one
@@ -94,7 +105,7 @@ def back_propagation(y, parameters, activations):
         A_c    = activations[f'A{c}']
 
         dZ = np.dot(W_next.T, dZ) * A_c * (1 - A_c)
-        gradients[f'dW{c}'] = 1 / m * dZ.dot(activations[f'A{c-1}'].T)
+        gradients[f'dW{c}'] = 1 / m * dZ.dot(activations[f'A{c-1}'].T) + (lambda_reg / m) * parameters[f'W{c}']
         gradients[f'db{c}'] = 1 / m * np.sum(dZ, axis=1, keepdims=True)
 
     return gradients
@@ -180,7 +191,7 @@ def normalise_data(X_train, X_test):
 
     return X_train_norm, X_test_norm
 
-def neural_network(X_train, y_train, X_test, y_test, hidden_dims, learning_rate=0.01, n_iter=1000):
+def neural_network(X_train, y_train, X_test, y_test, hidden_dims, learning_rate=0.01, n_iter=1000, lambda_reg=0):
     """
     Train a neural network of arbitrary depth via gradient descent.
 
@@ -193,6 +204,7 @@ def neural_network(X_train, y_train, X_test, y_test, hidden_dims, learning_rate=
                           (n0 and nC are inferred from X_train/y_train, no need to include them)
         learning_rate -- step size for gradient descent (default 0.01)
         n_iter        -- number of training iterations (default 1000)
+        lambda_reg    -- L2 regularization strength (default 0, disabled)
 
     Returns:
         parameters -- trained dict of W1, b1, ..., WC, bC
@@ -219,19 +231,19 @@ def neural_network(X_train, y_train, X_test, y_test, hidden_dims, learning_rate=
         activations = forward_propagation(X_train, parameters)
 
         if i %10 == 0:
-            train_loss.append(log_loss(activations[f'A{C}'], y_train))
+            train_loss.append(log_loss(activations[f'A{C}'], y_train, parameters, lambda_reg))
             y_pred = predict(X_train, parameters)
             current_accuracy = accuracy_score(y_train.flatten(), y_pred.flatten())
             train_acc.append(current_accuracy)
 
             #test graph
             A_test = forward_propagation(X_test, parameters)
-            test_loss.append(log_loss(A_test[f'A{C}'], y_test))
+            test_loss.append(log_loss(A_test[f'A{C}'], y_test, parameters, lambda_reg))
             y_test_pred = predict(X_test, parameters)
             current_test_acc = accuracy_score(y_test.flatten(), y_test_pred.flatten())
             test_acc.append(current_test_acc)
 
-        gradients   = back_propagation(y_train, parameters, activations)
+        gradients   = back_propagation(y_train, parameters, activations, lambda_reg)
         parameters  = update(parameters, gradients, learning_rate)
 
 
